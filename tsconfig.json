@@ -9,9 +9,9 @@
     "module": "CommonJS",
     "declaration": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "skipLibCheck": true,
     "outDir": "dist"
   },
-  "include": ["src"],
+  "include": ["src", "__tests__"],
   "exclude": ["node_modules"]
 }
