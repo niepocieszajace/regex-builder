@@ -5,13 +5,13 @@
     "esModuleInterop": true,
     "strictNullChecks": true,
     "target": "ES2022",
-    "moduleResolution": "Node10",
-    "module": "CommonJS",
+    "moduleResolution": "NodeNext",
+    "module": "NodeNext",
     "declaration": true,
     "isolatedModules": true,
-    "noEmit": true,
+    "skipLibCheck": true,
     "outDir": "dist"
   },
-  "include": ["src"],
+  "include": ["src", "__tests__"],
   "exclude": ["node_modules"]
 }

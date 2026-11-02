@@ -1,18 +1,39 @@
 {
   "name": "regex-builder",
   "version": "1.0.0",
-  "description": "",
-  "main": "./dist/index.js",
-  "module": "./dist/index.jsm",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Swift RegexBuilder-style DSL for JavaScript regular expressions",
+  "main": "./dist/cjs/index.js",
+  "module": "./dist/esm/index.js",
+  "types": "./dist/cjs/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      }
+    }
   },
-  "keywords": [],
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json && tsc -p tsconfig.esm.json && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "regex",
+    "regexbuilder",
+    "dsl"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "jest": "^29.7.0",
     "typescript": "^5.3.3",
     "vitest": "^1.3.1"
   }
