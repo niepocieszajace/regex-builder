@@ -13,13 +13,14 @@ const toMatch = <Output extends unknown[]>(result: RegExpExecArray | null, slots
 
     const output: unknown[] = [result[0]]
     const references = new Map<string, unknown>()
-    slots.forEach((slot, i) => {
-        if (!slot) return
+    for (const [i, slot] of slots.entries()) {
+        if (!slot) continue
         const raw = result[i + 1]
         const value = raw !== undefined && slot.transform ? slot.transform(raw) : raw
+        if (raw !== undefined && slot.rejectsNullish && value == null) return null
         output.push(value)
         if (slot.name) references.set(slot.name, value)
-    })
+    }
 
     return {
         output: output as Output,
@@ -30,6 +31,9 @@ const toMatch = <Output extends unknown[]>(result: RegExpExecArray | null, slots
         },
     }
 }
+
+// Steps over a whole surrogate pair, the u flag never matches inside one.
+const nextIndex = (input: string, index: number) => index + ((input.codePointAt(index) ?? 0) > 0xffff ? 2 : 1)
 
 class RegexImpl<Output extends unknown[]> {
     readonly #regExp: RegExp
@@ -54,7 +58,7 @@ class RegexImpl<Output extends unknown[]> {
     }
 
     firstMatch(input: string): Match<Output> | null {
-        return toMatch(this.#regExp.exec(input), this.captures)
+        return this.#find(new RegExp(this.source, this.flags + 'g'), input, 0)
     }
 
     wholeMatch(input: string): Match<Output> | null {
@@ -63,11 +67,32 @@ class RegexImpl<Output extends unknown[]> {
     }
 
     matches(input: string): Match<Output>[] {
-        return Array.from(input.matchAll(new RegExp(this.source, this.flags + 'g')), result => toMatch<Output>(result, this.captures)!)
+        const regExp = new RegExp(this.source, this.flags + 'g')
+        const found: Match<Output>[] = []
+        for (let match = this.#find(regExp, input, 0); match; ) {
+            found.push(match)
+            const {start, end} = match.range
+            match = this.#find(regExp, input, end === start ? nextIndex(input, end) : end)
+        }
+        return found
     }
 
     toRegExp(): RegExp {
         return new RegExp(this.#regExp)
+    }
+
+    // shortcut: a match rejected by TryCapture restarts the search one character later, while Swift
+    // would also backtrack into other alternatives at the same position; matching that needs an own engine.
+    #find(regExp: RegExp, input: string, from: number): Match<Output> | null {
+        for (let index = from; index <= input.length; ) {
+            regExp.lastIndex = index
+            const result = regExp.exec(input)
+            if (!result) return null
+            const match = toMatch<Output>(result, this.captures)
+            if (match) return match
+            index = nextIndex(input, result.index)
+        }
+        return null
     }
 
     #withFlag(flag: string, enabled: boolean): RegexImpl<Output> {

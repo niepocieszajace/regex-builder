@@ -30,7 +30,7 @@ email.toRegExp()                          // plain RegExp
 | `One`, `Optionally`, `ZeroOrMore`, `OneOrMore` | same names |
 | `Repeat(count: 3)`, `Repeat(2...5)`, `Repeat(2...)` | `Repeat({count: 3}, …)`, `Repeat({min: 2, max: 5}, …)`, `Repeat({min: 2}, …)` |
 | `.repetitionBehavior(.reluctant)` | `.reluctant()` |
-| `ChoiceOf`, `Capture` | same names |
+| `ChoiceOf`, `Capture`, `TryCapture` | same names, options first: `Capture({transform}, …)`, `TryCapture({transform}, …)` |
 | `.digit`, `.hexDigit`, `.word`, `.whitespace`, `.any`, `.anyNonNewline`, `.newlineSequence`, `.anyOf("…")`, `.noneOf("…")`, `"a"..."z"` | `digit`, `hexDigit`, `word`, `whitespace`, `any`, `anyNonNewline`, `newlineSequence`, `anyOf('…')`, `noneOf('…')`, `range('a', 'z')` |
 | `.inverted`, `.union(_:)` | `.inverted()`, `.union(other)` |
 | `Anchor.startOfSubject`, `.endOfSubject`, `.startOfLine`, `.endOfLine`, `.wordBoundary` | same names |
@@ -59,4 +59,5 @@ match.get(year) // number | undefined → 2024
 - Captures under `Optionally`, `ZeroOrMore`, `ChoiceOf` or a `Repeat` that may run zero times are `T | undefined`.
 - Options come first, like in `Repeat`: `Capture({transform}, …)`, `Capture({as: reference}, …)`.
 - A `Reference` used as a component matches the captured text again (backreference).
+- `TryCapture` rejects the match when its transform returns `null` or `undefined`, and the output type is non-nullable. Unlike Swift it doesn't backtrack into other alternatives at the same position: `firstMatch` and `matches` continue one character later, `wholeMatch` fails.
 - Groups inside an embedded `RegExp` are left out of the output; its numbered backreferences keep pointing at its own groups.

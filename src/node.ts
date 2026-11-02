@@ -4,7 +4,7 @@ export type Precedence = 'atom' | 'sequence' | 'alternation'
 
 // One entry per capturing group, in source order. null marks a group of an embedded
 // RegExp: it shifts group numbering but isn't part of the match output.
-export type CaptureSlot = {name?: string, transform?: (match: string) => unknown} | null
+export type CaptureSlot = {name?: string, transform?: (match: string) => unknown, rejectsNullish?: boolean} | null
 
 export declare const capturesType: unique symbol
 

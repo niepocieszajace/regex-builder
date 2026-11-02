@@ -57,12 +57,24 @@ export function Capture<Cs extends Components>(
     options: {as: Reference<string>}, ...components: Cs
 ): RegexComponent<[string, ...ConcatCaptures<Cs>]>
 export function Capture(...args: [CaptureOptions<unknown> | Component, ...Component[]]): RegexComponent {
-    const [options, components] = isComponent(args[0])
-        ? [{} as CaptureOptions<unknown>, args as Component[]]
-        : [args[0], args.slice(1) as Component[]]
+    return isComponent(args[0])
+        ? capture({}, args as Component[], false)
+        : capture(args[0], args.slice(1) as Component[], false)
+}
+
+// A null or undefined transform result rejects the match, like nil in Swift.
+export const TryCapture = <T, Cs extends Components>(
+    options: {transform: (match: string) => T | null | undefined, as?: Reference<T>}, ...components: Cs
+): RegexComponent<[T, ...ConcatCaptures<Cs>]> => capture(options, components, true)
+
+const capture = <Captures extends unknown[]>(options: CaptureOptions<unknown>, components: Component[], rejectsNullish: boolean) => {
     const inner = sequence(components)
     const name = options.as?.name
 
     // The group's own paren opens before any nested group, so its slot comes first.
-    return node(`(${name ? `?<${name}>` : ''}${inner.source})`, 'atom', [{name, transform: options.transform}, ...inner.captures])
+    return node<Captures>(
+        `(${name ? `?<${name}>` : ''}${inner.source})`,
+        'atom',
+        [{name, transform: options.transform, rejectsNullish}, ...inner.captures],
+    )
 }
