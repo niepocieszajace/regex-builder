@@ -1,6 +1,6 @@
-export type {Component, RegexComponent, Precedence, Invertible} from "./node";
-export * from "./regex";
-export * from "./quantifiers";
-export * from "./groups";
-export * from "./characterClasses";
-export * from "./anchors";
+export type {Component, RegexComponent, Precedence, Invertible} from "./node.js";
+export * from "./regex.js";
+export * from "./quantifiers.js";
+export * from "./groups.js";
+export * from "./characterClasses.js";
+export * from "./anchors.js";

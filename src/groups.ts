@@ -1,6 +1,6 @@
 import {
     CapturesOf, Component, Components, ConcatCaptures, isComponent, node, Optional, RegexComponent, sequence, toNode,
-} from "./node";
+} from "./node.js";
 
 export declare const valueType: unique symbol
 

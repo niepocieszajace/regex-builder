@@ -1,4 +1,4 @@
-import {node, RegexComponent} from "./node";
+import {node, RegexComponent} from "./node.js";
 
 export interface CharacterClass extends RegexComponent<[]> {
     inverted(): CharacterClass

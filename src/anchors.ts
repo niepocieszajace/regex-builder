@@ -1,4 +1,4 @@
-import {Invertible, invertible} from "./node";
+import {Invertible, invertible} from "./node.js";
 
 // Lookarounds instead of ^/$ so the meaning doesn't change with the m flag.
 // Assertions can't take a quantifier directly, hence 'sequence'.

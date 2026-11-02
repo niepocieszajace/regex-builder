@@ -1,4 +1,10 @@
 {
   "extends": "./tsconfig.json",
-  "include": ["src"]
+  "compilerOptions": {
+    "outDir": "dist/cjs",
+    "rootDir": "src"
+  },
+  "include": [
+    "src"
+  ]
 }

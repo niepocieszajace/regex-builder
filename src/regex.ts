@@ -1,5 +1,5 @@
-import {CaptureSlot, capturesType, Component, ConcatCaptures, sequence} from "./node";
-import {Reference} from "./groups";
+import {CaptureSlot, capturesType, Component, ConcatCaptures, sequence} from "./node.js";
+import {Reference} from "./groups.js";
 
 export interface Match<Output extends unknown[] = unknown[]> {
     // [whole match, ...captures], like Swift's match.output

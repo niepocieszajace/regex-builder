@@ -1,4 +1,4 @@
-import {asAtom, Component, Components, ConcatCaptures, node, Optional, RegexComponent, sequence, toNode, CapturesOf} from "./node";
+import {asAtom, Component, Components, ConcatCaptures, node, Optional, RegexComponent, sequence, toNode, CapturesOf} from "./node.js";
 
 export interface Quantifier<Captures extends unknown[]> extends RegexComponent<Captures> {
     reluctant(): RegexComponent<Captures>
