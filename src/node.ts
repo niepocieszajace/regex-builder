@@ -14,6 +14,9 @@ export interface RegexComponent<Captures extends unknown[] = unknown[]> {
     readonly captures: readonly CaptureSlot[]
     // Type only: what this component adds to the match output.
     readonly [capturesType]?: Captures
+    ignoresCase(enabled?: boolean): RegexComponent<Captures>
+    anchorsMatchLineEndings(enabled?: boolean): RegexComponent<Captures>
+    dotMatchesNewlines(enabled?: boolean): RegexComponent<Captures>
 }
 
 export interface Invertible extends RegexComponent<[]> {
@@ -32,14 +35,38 @@ export type ConcatCaptures<Cs extends unknown[]> =
 
 export type Optional<Captures extends unknown[]> = {[K in keyof Captures]: Captures[K] | undefined}
 
+// Modifier groups (?i:…) are ES2025, older engines reject them.
+const supportsModifiers = (() => {
+    try {
+        return new RegExp('(?i:a)').test('A')
+    } catch {
+        return false
+    }
+})()
+
+const modify = <Captures extends unknown[]>(component: RegexComponent<Captures>, flag: string, enabled: boolean) => {
+    if (!supportsModifiers) {
+        throw new Error('Component modifiers need RegExp modifier groups (?i:…), which this JavaScript engine lacks; use the Regex modifier instead')
+    }
+    return node<Captures>(`(?${enabled ? '' : '-'}${flag}:${component.source})`, 'atom', component.captures)
+}
+
 export const node = <Captures extends unknown[] = []>(
     source: string, precedence: Precedence, captures: readonly CaptureSlot[] = [],
-): RegexComponent<Captures> => ({source, precedence, captures})
+): RegexComponent<Captures> => {
+    const component: RegexComponent<Captures> = {
+        source,
+        precedence,
+        captures,
+        ignoresCase: (enabled = true) => modify(component, 'i', enabled),
+        anchorsMatchLineEndings: (enabled = true) => modify(component, 'm', enabled),
+        dotMatchesNewlines: (enabled = true) => modify(component, 's', enabled),
+    }
+    return component
+}
 
 export const invertible = (source: string, invertedSource: string, precedence: Precedence): Invertible => ({
-    source,
-    precedence,
-    captures: [],
+    ...node(source, precedence),
     inverted: () => invertible(invertedSource, source, precedence),
 })
 

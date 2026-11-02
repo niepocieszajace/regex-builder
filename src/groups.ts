@@ -16,7 +16,7 @@ let referenceCount = 0
 
 export const Reference = <T = string>(): Reference<T> => {
     const name = `ref${++referenceCount}`
-    return {name, source: `\\k<${name}>`, precedence: 'atom', captures: []}
+    return {...node(`\\k<${name}>`, 'atom'), name}
 }
 
 // Each argument is one alternative, like each line of a Swift ChoiceOf block.

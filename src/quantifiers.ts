@@ -17,9 +17,7 @@ const quantify = <Captures extends unknown[]>(quantifier: string, components: Co
     const inner = sequence(components)
     const source = asAtom(inner) + quantifier
     return {
-        source,
-        precedence: 'sequence',
-        captures: inner.captures,
+        ...node<Captures>(source, 'sequence', inner.captures),
         reluctant: () => node<Captures>(source + '?', 'sequence', inner.captures),
     }
 }

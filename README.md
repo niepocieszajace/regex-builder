@@ -22,6 +22,7 @@ email.toRegExp()                          // plain RegExp
 - Several arguments mean a sequence, like several lines in a Swift builder block.
 - Grouping `(?:…)` is added automatically where precedence requires it.
 - Patterns are compiled with the `u` flag.
+- Modifiers work on single components too: `One('abc').ignoresCase()` → `(?i:abc)`, `.ignoresCase(false)` → `(?-i:…)`. This needs RegExp modifier groups (ES2025: Node 23+, Chrome 125+, Firefox 132+); on older engines use the `Regex` modifier.
 
 | Swift | regex-builder |
 |---|---|
@@ -32,7 +33,7 @@ email.toRegExp()                          // plain RegExp
 | `.digit`, `.word`, `.whitespace`, `.any`, `.anyOf("…")`, `.noneOf("…")`, `"a"..."z"` | `digit`, `word`, `whitespace`, `any`, `anyOf('…')`, `noneOf('…')`, `range('a', 'z')` |
 | `.inverted` | `.inverted()` |
 | `Anchor.startOfSubject`, `.endOfSubject`, `.startOfLine`, `.endOfLine`, `.wordBoundary` | same names |
-| `.ignoresCase()`, `.anchorsMatchLineEndings()`, `.dotMatchesNewlines()` | same names |
+| `.ignoresCase()`, `.anchorsMatchLineEndings()`, `.dotMatchesNewlines()` | same names, on `Regex` and on any component |
 | `Lookahead`, `NegativeLookahead` | same names, plus `Lookbehind`, `NegativeLookbehind` |
 | `firstMatch(of:)`, `wholeMatch(of:)`, `matches(of:)` | `regex.firstMatch(input)`, `regex.wholeMatch(input)`, `regex.matches(input)` |
 
