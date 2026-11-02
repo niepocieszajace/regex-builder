@@ -48,6 +48,44 @@ const escapeLiteral = (value: string) => value.replace(/[\\^$.*+?()[\]{}|]/g, '\
 // An empty alternative always matches, so exec reports every group of the pattern.
 const groupCount = (source: string) => new RegExp(`${source}|`, 'u').exec('')!.length - 1
 
+let embeddedGroupCount = 0
+
+// \N in an embedded RegExp counts groups from its own start, which breaks once other
+// groups precede it, so numbered backreferences are rewritten to named ones.
+const nameBackreferences = (source: string) => {
+    const names: string[] = []
+    const parts: (string | number)[] = []
+    let inClass = false
+    for (let i = 0; i < source.length; i++) {
+        const char = source[i]
+        if (char === '\\') {
+            const number = inClass ? undefined : /^[1-9]\d*/.exec(source.slice(i + 1))?.[0]
+            parts.push(number ? Number(number) : source.slice(i, i + 2))
+            i += number ? number.length : 1
+            continue
+        }
+        if (inClass) {
+            if (char === ']') inClass = false
+        } else if (char === '[') {
+            inClass = true
+        } else if (char === '(') {
+            const named = /^\?<([^=!][^>]*)>/.exec(source.slice(i + 1))
+            if (named) {
+                names.push(named[1])
+            } else if (source[i + 1] !== '?') {
+                const name = `g${++embeddedGroupCount}`
+                names.push(name)
+                parts.push(`(?<${name}>`)
+                continue
+            }
+        }
+        parts.push(char)
+    }
+    if (!parts.some(part => typeof part === 'number')) return source
+
+    return parts.map(part => typeof part === 'number' ? `\\k<${names[part - 1]}>` : part).join('')
+}
+
 export const isComponent = (value: unknown): value is Component =>
     typeof value === 'string' || value instanceof RegExp || (typeof value === 'object' && value !== null && 'precedence' in value)
 
@@ -60,7 +98,8 @@ export const toNode = (component: Component): RegexComponent => {
         if (component.flags !== '' && component.flags !== 'u') {
             throw new Error(`Flags of embedded RegExp /${component.source}/${component.flags} would be lost, use Regex modifiers instead`)
         }
-        return node(component.source, 'alternation', Array(groupCount(component.source)).fill(null))
+        const captures = Array(groupCount(component.source)).fill(null)
+        return node(nameBackreferences(component.source), 'alternation', captures)
     }
     return component
 }

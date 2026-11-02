@@ -29,6 +29,26 @@ export const ChoiceOf = <Cs extends Components>(...alternatives: Cs): RegexCompo
     return node(nodes.map(n => n.source).join('|'), 'alternation', nodes.flatMap(n => n.captures))
 }
 
+// Assertions can't take a quantifier directly, hence 'sequence'.
+const lookaround = <Captures extends unknown[]>(prefix: string, components: Component[]) => {
+    const inner = sequence(components)
+    return node<Captures>(`(${prefix}${inner.source})`, 'sequence', inner.captures)
+}
+
+export const Lookahead = <Cs extends Components>(...components: Cs) =>
+    lookaround<ConcatCaptures<Cs>>('?=', components)
+
+// Captures inside a negative lookaround never hold a value.
+export const NegativeLookahead = <Cs extends Components>(...components: Cs) =>
+    lookaround<Optional<ConcatCaptures<Cs>>>('?!', components)
+
+// Not in Swift's RegexBuilder, but supported by JS.
+export const Lookbehind = <Cs extends Components>(...components: Cs) =>
+    lookaround<ConcatCaptures<Cs>>('?<=', components)
+
+export const NegativeLookbehind = <Cs extends Components>(...components: Cs) =>
+    lookaround<Optional<ConcatCaptures<Cs>>>('?<!', components)
+
 export function Capture<Cs extends Components>(...components: Cs): RegexComponent<[string, ...ConcatCaptures<Cs>]>
 export function Capture<T, Cs extends Components>(
     options: {transform: (match: string) => T, as?: Reference<T>}, ...components: Cs

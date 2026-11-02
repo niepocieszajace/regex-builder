@@ -62,6 +62,10 @@ class RegexImpl<Output extends unknown[]> {
         return toMatch(new RegExp(`(?:${this.source})(?![\\s\\S])`, this.flags + 'y').exec(input), this.#slots)
     }
 
+    matches(input: string): Match<Output>[] {
+        return Array.from(input.matchAll(new RegExp(this.source, this.flags + 'g')), result => toMatch<Output>(result, this.#slots)!)
+    }
+
     toRegExp(): RegExp {
         return new RegExp(this.#regExp)
     }

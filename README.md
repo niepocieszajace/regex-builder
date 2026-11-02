@@ -33,7 +33,8 @@ email.toRegExp()                          // plain RegExp
 | `.inverted` | `.inverted()` |
 | `Anchor.startOfSubject`, `.endOfSubject`, `.startOfLine`, `.endOfLine`, `.wordBoundary` | same names |
 | `.ignoresCase()`, `.anchorsMatchLineEndings()`, `.dotMatchesNewlines()` | same names |
-| `firstMatch(of:)`, `wholeMatch(of:)` | `regex.firstMatch(input)`, `regex.wholeMatch(input)` |
+| `Lookahead`, `NegativeLookahead` | same names, plus `Lookbehind`, `NegativeLookbehind` |
+| `firstMatch(of:)`, `wholeMatch(of:)`, `matches(of:)` | `regex.firstMatch(input)`, `regex.wholeMatch(input)`, `regex.matches(input)` |
 
 ## Typed captures
 
@@ -56,4 +57,4 @@ match.get(year) // number | undefined → 2024
 - Captures under `Optionally`, `ZeroOrMore`, `ChoiceOf` or a `Repeat` that may run zero times are `T | undefined`.
 - Options come first, like in `Repeat`: `Capture({transform}, …)`, `Capture({as: reference}, …)`.
 - A `Reference` used as a component matches the captured text again (backreference).
-- Groups inside an embedded `RegExp` are left out of the output.
+- Groups inside an embedded `RegExp` are left out of the output; its numbered backreferences keep pointing at its own groups.
