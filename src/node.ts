@@ -23,11 +23,20 @@ export interface Invertible extends RegexComponent<[]> {
     inverted(): Invertible
 }
 
+// A Regex as seen by the builder, declared here so node.ts doesn't import regex.ts.
+export interface NestedRegex<Captures extends unknown[] = unknown[]> {
+    readonly source: string
+    readonly flags: string
+    readonly captures: readonly CaptureSlot[]
+    readonly [capturesType]?: Captures
+}
+
 // A string is always a literal, a RegExp is the escape hatch for raw patterns.
-export type Component = RegexComponent | string | RegExp
+export type Component = RegexComponent | NestedRegex | string | RegExp
 export type Components = [Component, ...Component[]]
 
-export type CapturesOf<C> = C extends RegexComponent<infer Captures> ? Captures : []
+export type CapturesOf<C> =
+    C extends RegexComponent<infer Captures> ? Captures : C extends NestedRegex<infer Captures> ? Captures : []
 
 export type ConcatCaptures<Cs extends unknown[]> =
     Cs extends [infer Head, ...infer Rest] ? [...CapturesOf<Head>, ...ConcatCaptures<Rest>]
@@ -114,7 +123,15 @@ const nameBackreferences = (source: string) => {
 }
 
 export const isComponent = (value: unknown): value is Component =>
-    typeof value === 'string' || value instanceof RegExp || (typeof value === 'object' && value !== null && 'precedence' in value)
+    typeof value === 'string' || value instanceof RegExp
+    || (typeof value === 'object' && value !== null && ('precedence' in value || 'flags' in value))
+
+// i, m and s become local modifier groups; the others change how a match runs, not what it matches.
+const withFlags = (n: RegexComponent, flags: string, pattern: string) => {
+    if (/[^imsu]/.test(flags)) throw new Error(`Flags '${flags}' of embedded ${pattern} can't be applied to a component, only i, m and s can`)
+
+    return [...flags.replace('u', '')].reduce((modified, flag) => modify(modified, flag, true), n)
+}
 
 export const toNode = (component: Component): RegexComponent => {
     if (typeof component === 'string') {
@@ -122,11 +139,11 @@ export const toNode = (component: Component): RegexComponent => {
         return node(escapeLiteral(component), Array.from(component).length === 1 ? 'atom' : 'sequence')
     }
     if (component instanceof RegExp) {
-        if (component.flags !== '' && component.flags !== 'u') {
-            throw new Error(`Flags of embedded RegExp /${component.source}/${component.flags} would be lost, use Regex modifiers instead`)
-        }
         const captures = Array(groupCount(component.source)).fill(null)
-        return node(nameBackreferences(component.source), 'alternation', captures)
+        return withFlags(node(nameBackreferences(component.source), 'alternation', captures), component.flags, `RegExp /${component.source}/`)
+    }
+    if ('flags' in component) {
+        return withFlags(node(component.source, 'alternation', component.captures), component.flags, 'Regex')
     }
     return component
 }

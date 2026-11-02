@@ -19,6 +19,7 @@ email.toRegExp()                          // plain RegExp
 ```
 
 - Strings are literals and get escaped; pass a `RegExp` to embed a raw pattern.
+- A `Regex` can be nested in another one, keeping its captures. Its flags (and `i`/`m`/`s` of an embedded `RegExp`) apply only to that part.
 - Several arguments mean a sequence, like several lines in a Swift builder block.
 - Grouping `(?:…)` is added automatically where precedence requires it.
 - Patterns are compiled with the `u` flag.
@@ -30,8 +31,8 @@ email.toRegExp()                          // plain RegExp
 | `Repeat(count: 3)`, `Repeat(2...5)`, `Repeat(2...)` | `Repeat({count: 3}, …)`, `Repeat({min: 2, max: 5}, …)`, `Repeat({min: 2}, …)` |
 | `.repetitionBehavior(.reluctant)` | `.reluctant()` |
 | `ChoiceOf`, `Capture` | same names |
-| `.digit`, `.word`, `.whitespace`, `.any`, `.anyOf("…")`, `.noneOf("…")`, `"a"..."z"` | `digit`, `word`, `whitespace`, `any`, `anyOf('…')`, `noneOf('…')`, `range('a', 'z')` |
-| `.inverted` | `.inverted()` |
+| `.digit`, `.hexDigit`, `.word`, `.whitespace`, `.any`, `.anyNonNewline`, `.newlineSequence`, `.anyOf("…")`, `.noneOf("…")`, `"a"..."z"` | `digit`, `hexDigit`, `word`, `whitespace`, `any`, `anyNonNewline`, `newlineSequence`, `anyOf('…')`, `noneOf('…')`, `range('a', 'z')` |
+| `.inverted`, `.union(_:)` | `.inverted()`, `.union(other)` |
 | `Anchor.startOfSubject`, `.endOfSubject`, `.startOfLine`, `.endOfLine`, `.wordBoundary` | same names |
 | `.ignoresCase()`, `.anchorsMatchLineEndings()`, `.dotMatchesNewlines()` | same names, on `Regex` and on any component |
 | `Lookahead`, `NegativeLookahead` | same names, plus `Lookbehind`, `NegativeLookbehind` |

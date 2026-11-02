@@ -1,4 +1,4 @@
-import {CaptureSlot, Component, ConcatCaptures, sequence} from "./node";
+import {CaptureSlot, capturesType, Component, ConcatCaptures, sequence} from "./node";
 import {Reference} from "./groups";
 
 export interface Match<Output extends unknown[] = unknown[]> {
@@ -33,12 +33,12 @@ const toMatch = <Output extends unknown[]>(result: RegExpExecArray | null, slots
 
 class RegexImpl<Output extends unknown[]> {
     readonly #regExp: RegExp
-    readonly #slots: readonly CaptureSlot[]
+    // Type only: lets a Regex nest inside another one with its capture types.
+    declare readonly [capturesType]?: Output extends [string, ...infer Captures] ? Captures : unknown[]
 
-    constructor(readonly source: string, readonly flags: string, slots: readonly CaptureSlot[]) {
+    constructor(readonly source: string, readonly flags: string, readonly captures: readonly CaptureSlot[]) {
         // Compile once up front so an invalid embedded RegExp fails at build time.
         this.#regExp = new RegExp(source, flags)
-        this.#slots = slots
     }
 
     ignoresCase(enabled = true) {
@@ -54,16 +54,16 @@ class RegexImpl<Output extends unknown[]> {
     }
 
     firstMatch(input: string): Match<Output> | null {
-        return toMatch(this.#regExp.exec(input), this.#slots)
+        return toMatch(this.#regExp.exec(input), this.captures)
     }
 
     wholeMatch(input: string): Match<Output> | null {
         // Sticky + end-of-subject lookahead lets the engine backtrack until the match spans the input.
-        return toMatch(new RegExp(`(?:${this.source})(?![\\s\\S])`, this.flags + 'y').exec(input), this.#slots)
+        return toMatch(new RegExp(`(?:${this.source})(?![\\s\\S])`, this.flags + 'y').exec(input), this.captures)
     }
 
     matches(input: string): Match<Output>[] {
-        return Array.from(input.matchAll(new RegExp(this.source, this.flags + 'g')), result => toMatch<Output>(result, this.#slots)!)
+        return Array.from(input.matchAll(new RegExp(this.source, this.flags + 'g')), result => toMatch<Output>(result, this.captures)!)
     }
 
     toRegExp(): RegExp {
@@ -73,7 +73,7 @@ class RegexImpl<Output extends unknown[]> {
     #withFlag(flag: string, enabled: boolean): RegexImpl<Output> {
         if (this.flags.includes(flag) === enabled) return this
 
-        return new RegexImpl(this.source, enabled ? this.flags + flag : this.flags.replace(flag, ''), this.#slots)
+        return new RegexImpl(this.source, enabled ? this.flags + flag : this.flags.replace(flag, ''), this.captures)
     }
 }
 

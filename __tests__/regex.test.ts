@@ -18,7 +18,7 @@ describe('literals', () => {
     })
     test('raw RegExp is embedded and grouped', () => {
         expect(Regex(OneOrMore(/a|b/)).source).toBe('(?:a|b)+')
-        expect(() => Regex(/a/i)).toThrow(/modifiers/)
+        expect(() => Regex(/a/y)).toThrow(/only i, m and s/)
     })
 })
 
